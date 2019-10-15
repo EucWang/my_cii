@@ -4,7 +4,8 @@
 #include <string.h>
 #include <limits.h>
 #include "assert.h"
-#include <memory.h>
+//#include <memory.h>
+#include "mem.h"
 
 #define NELEMS(x) ((sizeof(x))/(sizeof((x)[0])))
 
@@ -105,7 +106,8 @@ const char * Atom_new(const char * str, int len) {
    }
 
     printf("find nothing from array, then create one and add it to array.\n");
-    p = malloc(sizeof(*p) + len + 1);
+    //p = malloc(sizeof(*p) + len + 1);
+	p = ALLOC(sizeof(*p) + len + 1);
 
     p->len = len;
     p->str = (char *)(p + 1);

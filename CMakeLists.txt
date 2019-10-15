@@ -7,6 +7,8 @@ set(CMAKE_C_FLAGS_DEBUG "$ENV{CFLAGS}  -O0 -Wall -g -ggdb")
 
 include_directories(include)
 add_subdirectory(src)
-aux_source_directory(src DIR_SRCS)
+add_subdirectory(examples)
+aux_source_directory(src DIR_SRCS) 
+aux_source_directory(examples DIR_SRCS)
 
-add_executable(icd ${DIR_SRCS}  main.c)
+add_executable(icd ${DIR_SRCS}  main.c include/arena.h src/arena.c)

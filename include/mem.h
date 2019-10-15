@@ -47,7 +47,7 @@ extern void *Mem_resize(void *ptr, long nbytes, const char * file, int line);
 * 
 **/
 // extern void Mem_leak(apply(void * ptr, long size, const char * file, int line, void cl), void *cl);
-extern void Mem_leak(void * ptr_apply, void *cl);
+// extern void Mem_leak(void * ptr_apply, void *cl);
 
 
 //--------------------- macros 51  ---------------------

@@ -4,6 +4,23 @@
 #include "except.h"
 #include "mem.h"
 
+#define NDESCRIPTORS 512
+
+//在循环时,如果bp到达freelist,则说明该链表不包含长度大于nbytes的内存块,需要分配一个新的内存块,其长度定义为如下宏
+#define NALLOC ((4096 + sizeof(union align) -1) / (sizeof(union align)) * (sizeof(union align)))
+
+void raise_fail(const char * file, int line) {
+    if (file == NULL) {
+        RAISE(Mem_Failed);
+    } else {
+        Except_raise(&Mem_Failed, file, line);
+    }
+}
+
+
+//------------------------data 54
+const Except_T Mem_Failed = {"Allocation Failed"};
+
 /**
 * 如果Mem_alloc, Mem_calloc, Mem_resize从来不把同一个地址返回两次,
 * 且能够记录所有返回的地址以及那些地址指向已分配的内存,
@@ -53,13 +70,11 @@ union align
 /**
  * htab包含了所有块的描述符，包括空闲块和已分配块， 同时空闲块还同时出现在freelist链表上
  * 如果描述符的free字段为NULL，则该块以及分配，
- * 如果描述符的free字段不是NULL，则该块是空闲的， 
- *
- * link字段构建了一个块描述符的链表，这些块散列到htab中的同一个索引上
-*/
+ * 如果描述符的free字段不是NULL，则该块是空闲
+ */
 static struct descriptor {
 	struct descriptor* free;
-	struct descriptor* link;  //
+	struct descriptor* link;  //link字段构建了一个块描述符的链表，这些块散列到htab中的同一个索引上
 
 	const void* ptr;  //块的地址，在代码的其他地方分配
 	long size;            //块的长度
@@ -81,28 +96,24 @@ static struct descriptor freelist = { &freelist };
 static struct descriptor* find(const void* ptr) {
 	struct descriptor* bp = htab[hash(ptr, htab)];
 
-	while (bp && bp->ptr != ptr) {
+	while (bp && bp->ptr != ptr) 	{
 		bp = bp->link;
 	}
 	return bp;
 }
 
 //内存释放
-void Mem_free(void* ptr, const char* file, int line) 
-{
-	if (ptr)
-	{
+void Mem_free(void* ptr, const char* file, int line) {
+	if (ptr) {
 		struct descriptor* bp = NULL;
 		//------set bp if ptr is valid 58-----------
 		//
 		if (((unsigned long)ptr) % (sizeof(union align)) != 0 ||  //对齐过滤
 			(bp = find(ptr)) == NULL ||
-			bp->free)
-		{
+			bp->free) {
 			Except_raise(&Assert_Failed, file, line);
 		}
-
-
+		
 		bp->free = freelist.free;
 		freelist.free = bp;
 	}
@@ -110,8 +121,7 @@ void Mem_free(void* ptr, const char* file, int line)
 
 
 //改变内存大小
-void* Mem_resize(void* ptr, long nbytes, const char* file, int line)
-{
+void* Mem_resize(void* ptr, long nbytes, const char* file, int line) {
 	struct descriptor* bp = NULL;
 	void* newptr = NULL;
 	
@@ -120,20 +130,20 @@ void* Mem_resize(void* ptr, long nbytes, const char* file, int line)
 
 	//------set bp if ptr is valid 58-----------
 	if (((unsigned long)ptr) % (sizeof(union align)) != 0 ||  //对齐过滤
-		(bp = find(ptr)) == NULL ||
-		bp->free)
-	{
-		Except_raise(&Assert_Failed, file, line);
+		(bp = find(ptr)) == NULL || bp->free)	{
+		Except_raise(&Assert_Failed, file, line);  //校验地址描述
 	}
 
-	newptr = Mem_alloc(nbytes, file, line);
-	memcpy(newptr, ptr, nbytes < bp->size ? nbytes : bp->size);
-	Mem_free(ptr, file, line);
-	return newptr;
+	newptr = Mem_alloc(nbytes, file, line);  //生成一个新的内存块
+	memcpy(newptr, ptr, nbytes < bp->size ? nbytes : bp->size);  //将原来的内存地址数据复制到新的内存块中
+	Mem_free(ptr, file, line); //释放原来的内存块
+	return newptr;  //返回新内存块地址
 }
 
-void* Mem_calloc(long count, long nbytes, const char* file, int line)
-{
+/**
+* 分配地址, 并初始化这块地址
+*/
+void* Mem_calloc(long count, long nbytes, const char* file, int line){
 	void* ptr;
 
 	assert(count > 0);
@@ -144,11 +154,72 @@ void* Mem_calloc(long count, long nbytes, const char* file, int line)
 	return ptr;
 }
 
-void* Mem_alloc(long nbytes, const char* file, int line)
-{
-	//TODO
+/**
+* 根据地址指针获得一个地址描述符
+*/
+static struct descriptor* dalloc(void* ptr, long size, const char* file, int line) {
+	static struct descriptor* avail;
+	static int nleft;
+	if (nleft <= 0) {  //第一次调用dalloc方法时的处理
+		//----allocate descriptors 60------------
+		avail = malloc(NDESCRIPTORS * sizeof(*avail));
+		if (avail == NULL) {
+			return NULL;  //内存分配失败,返回给调用者NULL,让调用者去处理
+		}
+		nleft = NDESCRIPTORS;
+	}
+
+	avail->ptr = ptr;
+	avail->size = size;
+	avail->file = file;
+	avail->line = line;
+	avail->free = avail->link = NULL;
+	nleft--;
+	return avail++;
+}
+
+void* Mem_alloc(long nbytes, const char* file, int line){
 	struct descriptor* bp = NULL;
 	void* ptr = NULL; 
 
-	return ptr;
+	assert(nbytes > 0);
+	// -- round nbytes up to an alignment boundary 61---
+	//将nbytes向上舍入,使得其返回的每个指针都对齐到联合align大小的倍数
+	nbytes = ((nbytes + sizeof(union align) - 1) / (sizeof(union align))) * (sizeof(union align));
+
+	//freelist.free指向空闲链表的起始位置
+	for (bp = freelist.free; bp; bp = bp->free) {
+		if (bp->size > nbytes) {
+			// --use the end of the block at bp->ptr 61--
+			//第一个大小大于nbytes的空闲块用来满足该请求. 
+			//该空闲块末端nbytes长的空间被切分为一个新块, 在创建其描述符,初始化并添加到htab后,返回该内存块
+
+			bp->size -= nbytes;
+			ptr = (char*)bp->ptr + bp->size;  //多出来的一块的地址
+			if ((bp = dalloc(ptr, nbytes, file, line)) != NULL) {
+				unsigned h = hash(ptr, htab);  //根据地址计算得到索引
+				bp->link = htab[h];                 //将该地址的地址描述结构放入到htab中
+				htab[h] = bp;
+				return ptr;     //返回该地址
+			} else {
+				//raise Mem_failed 54
+				raise_fail(file, line);
+			}
+		}
+
+		if (bp == &freelist) {
+			struct descriptor* newptr;
+			// newptr <- a block of size Nalloc + nbytes 62
+			//NALLOC 加上nbytes ,该块将添加到空闲链表的起始处,在for循环的下一次迭代中
+			if ((ptr = malloc(nbytes + NALLOC)) == NULL 
+				|| (newptr = dalloc(ptr, nbytes + NALLOC, __FILE__, __LINE__)) == NULL) {
+				raise_fail(file, line);
+			}
+
+			newptr->free = freelist.free;
+			freelist.free = newptr;
+		}
+	}
+	assert(0);
+	return NULL;
 }

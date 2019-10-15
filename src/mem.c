@@ -5,7 +5,7 @@
 #include "except.h"
 
 //------------------------data 54
-const Except_T Mem_Failed = {"Allocation Failed"};
+// const Except_T Mem_Failed = {"Allocation Failed"};
 
 //------------------------functions 54
 
