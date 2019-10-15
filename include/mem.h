@@ -39,6 +39,17 @@ extern void Mem_free(void *ptr, const char * file, int line);
 **/
 extern void *Mem_resize(void *ptr, long nbytes, const char * file, int line);
 
+/**
+* 对每个已分配的内存块调用ptr_apply指向的函数, 
+*   ptr_apply第一个参数ptr 是内存块的地址
+*   第二个参数 size是块的分配长度
+*   第三个,第四个参数 file 和line 是其分配的文件和坐标
+* 
+**/
+// extern void Mem_leak(apply(void * ptr, long size, const char * file, int line, void cl), void *cl);
+extern void Mem_leak(void * ptr_apply, void *cl);
+
+
 //--------------------- macros 51  ---------------------
 
 /**
