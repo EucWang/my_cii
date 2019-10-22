@@ -3,4 +3,5 @@
 
 void test_atom();
 void test_mem();
+void test_arena();
 #endif

@@ -11,8 +11,8 @@ int main(int argc, char * argv[]) {
     TRY
         printf("main() run() begin..\n");
         // test_atom();
-        test_mem();
-		
+//        test_mem();
+		test_arena();
 	EXCEPT(Assert_Failed)
         printf("\n-----------------------------------------\n"
             "catch excepting,and message is : '%s'\n", Assert_Failed.reason);

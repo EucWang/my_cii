@@ -11,4 +11,4 @@ add_subdirectory(examples)
 aux_source_directory(src DIR_SRCS) 
 aux_source_directory(examples DIR_SRCS)
 
-add_executable(icd ${DIR_SRCS}  main.c include/arena.h src/arena.c)
+add_executable(icd ${DIR_SRCS}  main.c include/arena.h )

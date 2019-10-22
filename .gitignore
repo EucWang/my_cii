@@ -4,3 +4,11 @@
 
 /out/build/x64-Debug
 /.vs
+.idea/.name
+.idea/deployment.xml
+.idea/interface_c_demo.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.vscode/settings.json
+CMakeSettings.json

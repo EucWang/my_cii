@@ -53,10 +53,11 @@ extern void *Arena_calloc(T arena, long count, long nbytes, const char * file, i
 
 /**
  * 释放内存池中所有的内存
- * 相当于释放内存池中的自创建或者上一次调用Arena_free以来已分配的所有内存块
+ * 相当于释放内存池中的自创建或者上一次调用Arena_free以来已分配的所有内存块,
+ * 相当于重置内存,以便再次使用
  * @param arena
  */
-extern void Arean_free(T arena);
+extern void Arena_free(T arena);
 
 #undef T
 #endif //ICD_ARENA_H
