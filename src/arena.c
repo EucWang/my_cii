@@ -53,6 +53,16 @@ union header {
 //--data 70--
 
 /**
+ * 真实的再内存中分配一块内存
+ * @param nbytes  分配的内存块大小
+ * @param file
+ * @param line
+ * @param ptr
+ * @param limit
+ */
+void real_alloc_memory(long nbytes, const char *file, int line, Arena_T *ptr, char **limit);
+
+/**
  * 一个空闲链表,维护被释放了的大内存块
  * 该链表将大内存块头部的Arena_T结构实例的prev字段用作链表指针,
  * 这些结构实例的limit字段只是指向其所处大内存块的结束处.
@@ -143,17 +153,8 @@ void * Arena_alloc(T arena, long nbytes, const char * file, int line) {
             nfree--;
             limit = ptr->limit;
         } else {
-            long m = sizeof(union header) + nbytes + 10 * 1024;
-            ptr = malloc(m);
-            if(ptr == NULL) {
-                //--raise Arena_Failed 70
-                if(file == NULL) {
-                    RAISE(Arena_Failed);
-                } else {
-                    Except_raise(&Arena_Failed, file, line);
-                }
-            }
-            limit = (char *)ptr + m;
+            //TODO update 这里需要遍历整个内存池链表之后,才去分配新的内存块
+            real_alloc_memory(nbytes, file, line, &ptr, &limit);
         }
 
         //将*arena 下推, 保存在新的大内存块的起始处,header联合确保了arena->avail指向一个适合对齐的地址
@@ -167,6 +168,20 @@ void * Arena_alloc(T arena, long nbytes, const char * file, int line) {
 
     arena->avail += nbytes;  //相当于前nbytes个字节的数据已经被分配了
     return arena->avail - nbytes;  //返回这块被分配了的数据库的地址
+}
+
+void real_alloc_memory(long nbytes, const char *file, int line, Arena_T *ptr, char **limit) {
+    long m = sizeof(union header) + nbytes + 10 * 1024;
+    (*ptr) = malloc(m);
+    if((*ptr) == NULL) {
+        //--raise Arena_Failed 70
+        if(file == NULL) {
+            RAISE(Arena_Failed);
+        } else {
+            Except_raise(&Arena_Failed, file, line);
+        }
+    }
+    (*limit) = (char *) (*ptr) + m;
 }
 
 /**
