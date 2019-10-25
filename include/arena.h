@@ -10,6 +10,17 @@
 #define T Arena_T
 typedef struct T *T;
 
+/**
+ * 内存池状态
+ */
+struct _Arena_Status {
+    long totalMem;       //总的分配的内存,包括, 空闲链表中的内存, 以及正在使用的内存
+    long usedMem;        //和正在使用中的内存块里的没有使用的内存
+    long freeMem;        //空闲链表中的内存
+    long blocks;         //多少个内存块
+};
+typedef struct _Arena_Status * Arena_Status;
+
 extern const Except_T Arena_NewFailed;
 extern const Except_T Arean_Failed;
 
@@ -58,6 +69,8 @@ extern void *Arena_calloc(T arena, long count, long nbytes, const char * file, i
  * @param arena
  */
 extern void Arena_free(T arena);
+
+extern Arena_Status Arena_status();
 
 #undef T
 #endif //ICD_ARENA_H
