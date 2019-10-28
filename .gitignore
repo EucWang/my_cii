@@ -12,3 +12,6 @@
 .idea/vcs.xml
 .vscode/settings.json
 CMakeSettings.json
+.idea/
+build/
+cmake-build-debug/

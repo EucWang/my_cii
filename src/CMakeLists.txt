@@ -3,4 +3,5 @@ set(SOURCE_FILES
     assert.c 
     except.c
     //mem.c
-    memchk.c)
+    memchk.c
+    list.c)
