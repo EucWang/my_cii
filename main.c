@@ -13,7 +13,8 @@ int main(int argc, char * argv[]) {
         // test_atom();
 //        test_mem();
 //		test_arena();
-        test_list();
+//        test_list();
+        test_getword(argc, argv);
 	EXCEPT(Assert_Failed)
         printf("\n-----------------------------------------\n"
             "catch excepting,and message is : '%s'\n", Assert_Failed.reason);

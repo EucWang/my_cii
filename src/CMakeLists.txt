@@ -4,4 +4,6 @@ set(SOURCE_FILES
     except.c
     //mem.c
     memchk.c
-    list.c)
+    list.c
+    getword.c
+    table.c)

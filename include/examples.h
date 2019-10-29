@@ -5,4 +5,5 @@ void test_atom();
 void test_mem();
 void test_arena();
 void test_list();
+int test_getword(int argc, char * argv[]);
 #endif
