@@ -168,7 +168,7 @@ void * Table_put(/*in out*/T * table, const void *key, void * value) {
     if ((*table)->length >= (*table)->size * capacity_factor) { //超过容量,需要重新申请空间,重新排序
         printf("Table_put() before resize(), and current length is : %d, size is : %d\n", (*table)->length , (*table)->size);
         //创建一个新的table  //分配空间
-        T newTable = ALLOC(sizeof(*table) + ((*table)->size * 2+1) * sizeof((*table)->buckets[0]));
+        T newTable = ALLOC(sizeof(*newTable) + (((*table)->size) * 2+1) * sizeof(newTable->buckets[0]));
         //设置属性
         newTable->size = ((*table)->size * 2+1);
         newTable->cmp = (*table)->cmp;
@@ -247,7 +247,7 @@ void * Table_get(T table, const void *key) {
     i = (*table->hash)(key) % table->size;  //通过hash函数计算得到链表桶的索引位置
 
     for(p = table->buckets[i]; p; p = p->link) {  //遍历链表
-        if(p && p->key && (*table->cmp)(key, p->key) == 0) {    //通过比较函数cmp来确定找到相应的键值对
+        if((*table->cmp)(key, p->key) == 0) {    //通过比较函数cmp来确定找到相应的键值对
             break;
         }
     }

@@ -88,6 +88,8 @@ static void wf(char * name, FILE * fp) {
         printf("%d\t%s\n", *(int *) array[i+1], (char *)array[i]);
     }
     FREE(array);   //释放创建的数组
+	 
+	printf("Table length is %d\n", Table_length(table));
 
     //--deallocate the entries and table 91--
     Table_map(table, vfree, NULL);  //释放表中的数据
