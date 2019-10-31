@@ -7,6 +7,9 @@
 //#include <memory.h>
 #include "mem.h"
 
+/**
+ * 计算数组指针的数组长度
+ */
 #define NELEMS(x) ((sizeof(x))/(sizeof((x)[0])))
 
 static unsigned long scatter[] = {

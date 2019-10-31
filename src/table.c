@@ -51,13 +51,14 @@ static unsigned  hashatom(const void * key) {
 
 
 /**
+ * 书上的例子示例代码
  * 可能引发Mem_Failed异常
  * @param hint  用于估计新的表中预期会容纳的表项数量,无论hint值如何,所有表都可以容纳任意数目的表项
  * @param cmp   操作键值  比较函数
  * @param hash  操作键值  hash函数
  * @return
  */
-T Table_new(int hint, int cmp(const void * x, const void * y), unsigned hash(const void * key)) {
+T Table_new2(int hint, int cmp(const void * x, const void * y), unsigned hash(const void * key)) {
 
     T table;
     int i;
@@ -85,6 +86,31 @@ T Table_new(int hint, int cmp(const void * x, const void * y), unsigned hash(con
     table->timestamp = 0;
     return table;
 }
+
+const static int default_size = 16;
+const static float capacity_factor = 0.75f;
+
+T Table_new(int cmp(const void * x, const void * y), unsigned hash(const void * key)) {
+    T table;
+    int i;
+
+    //分配空间
+    table = ALLOC(sizeof(*table) + default_size * sizeof(table->buckets[0]));
+    //设置属性
+    table->size = default_size;
+    table->cmp = cmp ? cmp : cmpatom;
+    table->hash = hash ? hash : hashatom;
+
+    table->buckets = (struct binding **)(table + 1);
+    for(i = 0; i< table->size; i++) {
+        table->buckets[i] = NULL;
+    }
+    table->length = 0;
+    table->timestamp = 0;
+    return table;
+}
+
+
 
 /**
  * 释放table, 并将其设置为NULL,
@@ -125,24 +151,66 @@ int Table_length(T table) {
  * 它在表中查找一个键,如果找到了,则改变相关的值,
  * 如果没有找到,则新分配并初始化一个新的binding结构实例,并添加到链表的头部.
  * 添加到头部是最容易且最高效的方案
- * @param table
- * @param key
- * @param value
+ * @param table  hash表 不能为空
+ * @param key      键    不能为空
+ * @param value     值
  * @return
  */
-void * Table_put(T table, const void *key, void * value) {
-    int i;
-    struct binding * p;
-    void * prev;
-
+void * Table_put(/*in out*/T * table, const void *key, void * value) {
     assert(table);
     assert(key);
 
-    //--search table for key 94--
-    i = (*table->hash)(key) % table->size;  //通过hash函数计算得到链表桶的索引位置
+    int i;
+    struct binding * p;
+    void * prev;
+    int index;
 
-    for(p = table->buckets[i]; p; p = p->link) {  //遍历链表
-        if((*table->cmp)(key, p->key) == 0) {    //通过比较函数cmp来确定找到相应的键值对
+    if ((*table)->length >= (*table)->size * capacity_factor) { //超过容量,需要重新申请空间,重新排序
+        printf("Table_put() before resize(), and current length is : %d, size is : %d\n", (*table)->length , (*table)->size);
+        //创建一个新的table  //分配空间
+        T newTable = ALLOC(sizeof(*table) + ((*table)->size * 2+1) * sizeof((*table)->buckets[0]));
+        //设置属性
+        newTable->size = ((*table)->size * 2+1);
+        newTable->cmp = (*table)->cmp;
+        newTable->hash = (*table)->hash;
+
+        newTable->buckets = (struct binding **)(newTable + 1);
+        for(i = 0; i< newTable->size; i++) {
+            newTable->buckets[i] = NULL;
+        }
+        newTable->length = 0;
+        newTable->timestamp = 0;
+
+        struct binding ** pp;
+        //将老table中的数据移动到新的table中
+        for (i = 0;  i<(*table)->size ; i++) {
+            for(pp = &(*table)->buckets[i]; *pp; pp = &((*pp)->link)) {  //遍历链表
+                index = (*newTable->hash)((*pp)->key) % newTable->size;  //通过hash函数计算得到链表桶的索引位置
+                struct binding * tp;
+                NEW(tp);
+                tp->key = (*pp)->key;
+                tp->value = (*pp)->value;
+                tp->link = newTable->buckets[index];
+
+                newTable->buckets[index] = tp;
+                newTable->length++;
+            }
+        }
+
+        //删除老的table
+        T tmp = *table;
+
+        //注意如下两个赋值的方式的根本区别,
+//        table = &newTable;   //修改二级指针的值
+        *table = newTable;     //修改二级指针指向的一级指针的值,二级指针没有改变,改变的只是一级指针
+        Table_free(&tmp);
+    }
+
+    //--search table for key 94--
+    i = (*(*table)->hash)(key) % (*table)->size;  //通过hash函数计算得到链表桶的索引位置
+
+    for(p = (*table)->buckets[i]; p; p = p->link) {  //遍历链表
+        if((*(*table)->cmp)(key, p->key) == 0) {    //通过比较函数cmp来确定找到相应的键值对
             break;
         }
     }
@@ -150,16 +218,16 @@ void * Table_put(T table, const void *key, void * value) {
     if (p == NULL) {        //没有找到
         NEW(p);
         p->key = key;
-        p->link = table->buckets[i];
-        table->buckets[i] = p;
-        table->length++;
+        p->link = (*table)->buckets[i];
+        (*table)->buckets[i] = p;
+        (*table)->length++;
         prev = NULL;
     } else {                //找到了
         prev = p->value;
     }
 
     p->value = value;
-    table->timestamp ++;
+    (*table)->timestamp ++;
     return prev;
 }
 
@@ -179,7 +247,7 @@ void * Table_get(T table, const void *key) {
     i = (*table->hash)(key) % table->size;  //通过hash函数计算得到链表桶的索引位置
 
     for(p = table->buckets[i]; p; p = p->link) {  //遍历链表
-        if((*table->cmp)(key, p->key) == 0) {    //通过比较函数cmp来确定找到相应的键值对
+        if(p && p->key && (*table->cmp)(key, p->key) == 0) {    //通过比较函数cmp来确定找到相应的键值对
             break;
         }
     }

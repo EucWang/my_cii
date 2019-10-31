@@ -13,12 +13,12 @@ typedef struct T * T;
 
 /**
  * 可能引发Mem_Failed异常
- * @param hint  用于估计新的表中预期会容纳的表项数量,无论hint值如何,所有表都可以容纳任意数目的表项
+ * @param hint  用于估计新的表中预期会容纳的表项数量,无论hint值如何,所有表都可以容纳任意数目的表项 , 优化去掉了这个参数
  * @param cmp   操作键值  比较函数
  * @param hash  操作键值  hash函数
  * @return
  */
-extern T Table_new(int hint, int cmp(const void * x, const void * y), unsigned hash(const void * key));
+extern T Table_new(int cmp(const void * x, const void * y), unsigned hash(const void * key));
 
 /**
  * 释放table, 并将其设置为NULL,
@@ -41,7 +41,7 @@ extern int Table_length(T table);
  * @param value
  * @return
  */
-extern void * Table_put(T table, const void *key, void * value);
+extern void * Table_put(T * table, const void *key, void * value);
 
 /**
  * 获取Table中对应key 的值

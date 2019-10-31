@@ -1,0 +1,5 @@
+for test test_getword
+find nothing from array, then create one and add it to array.so be it.
+An internal error has occurred from which there is no recovery.
+Please report this error to Technical Support at xxx-xxx-xxxx.
+Not the following message, which will help  our support staff find the cause of this error.

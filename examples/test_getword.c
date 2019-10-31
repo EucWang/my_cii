@@ -51,10 +51,10 @@ void vfree(const void *key, void **count, void * cl) {
  * @param fp
  */
 static void wf(char * name, FILE * fp) {
-    Table_T table = Table_new(0, NULL, NULL);
+    Table_T table = Table_new(NULL, NULL);  //生成一个新的Table
     char buf[128];
 
-    while(getword(fp, buf, sizeof(buf), first, rest)) {
+    while(getword(fp, buf, sizeof(buf), first, rest)) {  //循环遍历,获得文件中的每一个单词
         const char * word;
 
         int i;
@@ -63,25 +63,25 @@ static void wf(char * name, FILE * fp) {
         for(i = 0; buf[i] != '\0'; i++) {
             buf[i] = tolower(buf[i]);
         }
-        word = Atom_string(buf);
+        word = Atom_string(buf);  //单词转换成小写之后,再转换成Atom类型
 
-        count = Table_get(table, word);
-        if (count) {
+        count = Table_get(table, word);  //查看表中是否有这个单词
+        if (count) {       //有,则单词数量+1
             (*count) ++;
         } else {
-            NEW(count);
+            NEW(count);  //否则创建int值,
             *count = 1;
-            Table_put(table, word, count);
+            Table_put(&table, word, count);  //将单词和int值存入到table中
         }
     }
 
     if(name) {
-        printf("%s:\n", name);
+        printf("%s:\n", name);  //这是文件名
     }
 
     //--print the words 90--
     int i;
-    void ** array = Table_toArray(table, NULL);
+    void ** array = Table_toArray(table, NULL);  //将table转换成数组
     qsort(array, Table_length(table), 2 * sizeof(*array), compare);  //排序
 
     for (i = 0;  array[i] ; i += 2) {
@@ -110,7 +110,7 @@ int test_getword(int argc, char * argv[]) {
             fprintf(stderr, "%s: can't open '%s' (%s)\n", argv[0], argv[i], strerror(errno));
             return EXIT_FAILURE;
         } else {
-            wf(argv[i], fp);
+            wf(argv[i], fp);  //第一个参数是文件的路径
             fclose(fp);
         }
     }
