@@ -5,6 +5,7 @@
 #include "table.h"
 #include "mem.h"
 #include "assert.h"
+#include "atom.h"
 
 #include <limits.h>
 #include <stddef.h>
@@ -29,25 +30,11 @@ struct T {
 };
 
 /**
- * 默认的比较函数
- * @param x
- * @param y
- * @return
+ * 在调用Table_put()时,如果需要扩容,尝试扩容
+ * @param table
  */
-static int cmpatom(const void * x, const void * y) {
-    return x != y;
-}
+static void tryExpandTable(Table_T *table);
 
-/**
- * 默认的hash函数
- * 原子是一个地址, 这个地址本省就可以用来作为hash码,
- * 右移两位是因为可能每个原子都起始于字边界(word boundary),因此最右侧两位可能是0
- * @param key
- * @return
- */
-static unsigned  hashatom(const void * key) {
-    return (unsigned long) key>>2;
-}
 
 
 /**
@@ -160,11 +147,40 @@ void * Table_put(/*in out*/T * table, const void *key, void * value) {
     assert(table);
     assert(key);
 
-    int i;
     struct binding * p;
     void * prev;
-    int index;
 
+    int i;
+    tryExpandTable(table);
+
+    //--search table for key 94--
+    i = (*(*table)->hash)(key) % (*table)->size;  //通过hash函数计算得到链表桶的索引位置
+
+    for(p = (*table)->buckets[i]; p; p = p->link) {  //遍历链表
+        if((*(*table)->cmp)(key, p->key) == 0) {    //通过比较函数cmp来确定找到相应的键值对
+            break;
+        }
+    }
+
+    if (p == NULL) {        //没有找到
+        NEW(p);
+        p->key = key;
+        p->link = (*table)->buckets[i];
+        (*table)->buckets[i] = p;
+        (*table)->length++;
+        prev = NULL;
+    } else {                //找到了
+        prev = p->value;
+    }
+
+    p->value = value;
+    (*table)->timestamp ++;
+    return prev;
+}
+
+void tryExpandTable(Table_T *table) {
+    int i;
+    int index;
     if ((*table)->length >= (*table)->size * capacity_factor) { //超过容量,需要重新申请空间,重新排序
         printf("Table_put() before resize(), and current length is : %d, size is : %d\n", (*table)->length , (*table)->size);
         //创建一个新的table  //分配空间
@@ -205,30 +221,6 @@ void * Table_put(/*in out*/T * table, const void *key, void * value) {
         *table = newTable;     //修改二级指针指向的一级指针的值,二级指针没有改变,改变的只是一级指针
         Table_free(&tmp);
     }
-
-    //--search table for key 94--
-    i = (*(*table)->hash)(key) % (*table)->size;  //通过hash函数计算得到链表桶的索引位置
-
-    for(p = (*table)->buckets[i]; p; p = p->link) {  //遍历链表
-        if((*(*table)->cmp)(key, p->key) == 0) {    //通过比较函数cmp来确定找到相应的键值对
-            break;
-        }
-    }
-
-    if (p == NULL) {        //没有找到
-        NEW(p);
-        p->key = key;
-        p->link = (*table)->buckets[i];
-        (*table)->buckets[i] = p;
-        (*table)->length++;
-        prev = NULL;
-    } else {                //找到了
-        prev = p->value;
-    }
-
-    p->value = value;
-    (*table)->timestamp ++;
-    return prev;
 }
 
 /**

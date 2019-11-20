@@ -6,4 +6,5 @@ set(SOURCE_FILES
     memchk.c
     list.c
     getword.c
-    table.c)
+    table.c
+    set.c)

@@ -169,3 +169,23 @@ const char * Atom_int(long n) {
 }
 
 
+/**
+ * 默认的比较函数
+ * @param x
+ * @param y
+ * @return
+ */
+int cmpatom(const void * x, const void * y) {
+    return x != y;
+}
+
+/**
+ * 默认的hash函数
+ * 原子是一个地址, 这个地址本省就可以用来作为hash码,
+ * 右移两位是因为可能每个原子都起始于字边界(word boundary),因此最右侧两位可能是0
+ * @param key
+ * @return
+ */
+unsigned  hashatom(const void * key) {
+    return (unsigned long) key>>2;
+}

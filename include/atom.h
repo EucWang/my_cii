@@ -9,4 +9,8 @@ extern const char * Atom_string(const char * str);
 
 extern const char * Atom_int(long n);
 
+extern int cmpatom(const void * x, const void * y);
+
+extern unsigned  hashatom(const void * key);
+
 #endif

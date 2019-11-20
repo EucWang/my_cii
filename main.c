@@ -14,7 +14,8 @@ int main(int argc, char * argv[]) {
 //        test_mem();
 //		test_arena();
 //        test_list();
-        test_getword(argc, argv);
+//        test_getword(argc, argv);
+        test_table();
 	EXCEPT(Assert_Failed)
         printf("\n-----------------------------------------\n"
             "catch excepting,and message is : '%s'\n", Assert_Failed.reason);
