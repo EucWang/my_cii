@@ -189,3 +189,57 @@ int cmpatom(const void * x, const void * y) {
 unsigned  hashatom(const void * key) {
     return (unsigned long) key>>2;
 }
+
+
+
+#define NHASH 29989
+#define MULT 31
+
+/**
+ * 字符串比较函数
+ * @param str1
+ * @param str2
+ * @return
+ */
+int str_cmp(const char * str1, const char * str2){
+    return strcmp(str1, str2);
+}
+
+/**
+ * 字符串的hash函数
+ * @param str
+ * @return
+ */
+int str_hash(const char * str) {
+    unsigned int h = 0;
+    const char * p = str;
+    for (; *p; p++) {
+        h = MULT * h + *p;
+    }
+    return h % NHASH;
+}
+
+/**
+ * int型数据的比较函数
+ * @param a int *
+ * @param b  int *
+ * @return  int
+ */
+int int_cmp(const int * a, const int * b) {
+    if(*a > *b) {
+        return 1;
+    } else if(*a == *b) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+/**
+ * int的哈希函数
+ * @param num
+ * @return
+ */
+int int_hash(const int * num) {
+    return (MULT + *num) % NHASH;
+}

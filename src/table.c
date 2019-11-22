@@ -319,13 +319,16 @@ void ** Table_toArray(T table, void * end) {
     void ** array;
     struct binding *p;
 
+    int length = (2 * table->length + 1);
     //分配数组
-    array = ALLOC((2 * table->length + 1) * sizeof(*array));
+    array = ALLOC(length * sizeof(*array));
 
     for( i = 0; i < table->size; i++) {  //遍历桶
         for( p = table->buckets[i]; p; p = p->link) {  //遍历桶中的每个元素
-            array[j++] = (void *)p->key;
-            array[j++] = p->value;
+            if (p->key && p->value) {
+                array[j++] = (void *)p->key;
+                array[j++] = p->value;
+            }
         }
     }
     array[j] = end;

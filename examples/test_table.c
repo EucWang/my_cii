@@ -10,34 +10,8 @@ void printTableEnty(void * key, void ** value, void * cl) {
     printf("key is %d\t value is %d\n", key, *value);
 }
 
-void test_table(){
+void test_table2(){
 
-    Table_T myTable = Table_new(NULL, NULL);
-    
-    Table_put(&myTable, "abc1", "zhangsan");
-    Table_put(&myTable, "abc2", "zhangsan2");
-    Table_put(&myTable, "abc3", "zhangsan3");
-
-    Table_put(&myTable, "abc4", "zhangsan4");
-    Table_put(&myTable, "abc5", "zhangsan5");
-    Table_put(&myTable, "abc6", "zhangsan6");
-
-    Table_put(&myTable, "abc7", "zhangsan6");
-    Table_put(&myTable, "abc7", "zhangsan8");
-
-    int length = Table_length(myTable);
-    printf("length is %d.\n", length);
-
-    void *pVoid = Table_get(myTable, "abc7");
-
-    printf("in myTable match the key 'abc7' and it's value is '%s'\n", pVoid);
-
-    pVoid = Table_put(&myTable, "abc7", 1);
-
-    printf("in myTable match the key 'abc7' and it's value is '%d'\n", pVoid);
-    
-    Table_free(&myTable);
-    
     Table_T tableNew = Table_new(NULL, NULL);
 
     int * a1 = 1;
@@ -82,4 +56,43 @@ void test_table(){
 
     Table_map(tableNew, &printTableEnty, NULL);
 
+    Table_free(&tableNew);
+}
+
+void test_table1(){
+
+    Table_T myTable = Table_new(NULL, NULL);
+
+    Table_put(&myTable, "abc1", "zhangsan");
+    Table_put(&myTable, "abc2", "zhangsan2");
+    Table_put(&myTable, "abc3", "zhangsan3");
+
+    Table_put(&myTable, "abc4", "zhangsan4");
+    Table_put(&myTable, "abc5", "zhangsan5");
+    Table_put(&myTable, "abc6", "zhangsan6");
+
+    Table_put(&myTable, "abc7", "zhangsan6");
+    Table_put(&myTable, "abc7", "zhangsan8");
+
+    int length = Table_length(myTable);
+    printf("length is %d.\n", length);
+
+    void *pVoid = Table_get(myTable, "abc7");
+
+    printf("in myTable match the key 'abc7' and it's value is '%s'\n", (char *)pVoid);
+
+    int cc  = 100;
+    Table_put(&myTable, "abc7", &cc);
+
+    pVoid = Table_get(myTable, "abc7");
+
+    printf("in myTable match the key 'abc7' and it's value is '%d'\n", *((int *)pVoid));
+
+    Table_free(&myTable);
+
+}
+
+void test_table(){
+    test_table1();
+//    test_table2();
 }

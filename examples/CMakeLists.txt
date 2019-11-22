@@ -4,4 +4,6 @@ set(SOURCE_FILES
         test_mem.c
         test_list.c
         test_getword.c
-        test_table.c)
+        test_table.c
+        test_set.c
+        xref.c)
