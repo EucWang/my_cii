@@ -88,16 +88,36 @@ void print_table(Table_T files) {
     }
 }
 
+void apply3(const void *key, void *cl) {
+    printf("%d ", *(int *)key);
+}
+
+void apply2(const void *key, void ** value, void * cl) {
+    printf("\n\tItem key is %s\n", (char *)key);
+    printf("\tItem value is:[");
+    Set_T * subItem = (Set_T *)value;
+    Set_map(*subItem, apply3, NULL);
+    printf("]\n");
+}
+
+void apply1(const void *key, void ** value, void * cl){
+    printf("KEY is %s\n", (char *)key);
+    printf("VALUE is [");
+    Table_T * item = (Table_T *)value;
+    Table_map(*item, apply2, NULL);
+    printf("\t]\n");
+}
+
 /**
  * 交叉引用表的创建
  * @param name   文件路径
  * @param fp     文件句柄
- * @param identifiers   文件名作为key, 文件中的标识符和其出现的所有行号的set集合主城的key-value作为value
- *                      这是一个Table_T 嵌套Table_T的结构, 而且还有一个set集合作为value
+ * @param identifiers Table_T *类型
+ *              文件名作为key, 文件中的标识符和其出现的所有行号的set集合主城的key-value作为value
+ *              这是一个Table_T 嵌套Table_T的结构, 而且还有一个set集合作为value
  */
-void xref(const char * name, FILE *fp, Table_T identifiers) {
+void xref(/*in*/const char * name, /*in*/FILE *fp, /* in out */Table_T * identifiers) {
     char buf[128];
-
     if(name == NULL) {
         name = "";
     }
@@ -112,10 +132,10 @@ void xref(const char * name, FILE *fp, Table_T identifiers) {
         //files <- file table in identifiers associated with id 106
         //在第一次遇到某个标识符时,identifiers表中没有对应的项,因此需要创建文件表
         //并将 "标识符-文件表" 对 添加到identifiers表中
-        files = Table_get(identifiers, id);
+        files = Table_get(*identifiers, id);
         if(files == NULL) {
             files = Table_new(NULL, NULL);
-            Table_put(&identifiers, id, files);
+            Table_put(identifiers, id, files);
         }
 
         //set <- set in files associated with anme 106
@@ -140,7 +160,8 @@ void xref(const char * name, FILE *fp, Table_T identifiers) {
 int test_xref(int argc, char * argv[]) {
     int i;
 
-    Table_T identifiers = Table_new(NULL, NULL);
+    Table_T table = Table_new(NULL, NULL);
+    Table_T * identifiers = &table;
 
     for (i = 1; i < argc; i++) {
         FILE *fp = fopen(argv[i], "r");  //打开文件
@@ -157,11 +178,15 @@ int test_xref(int argc, char * argv[]) {
 //        xref(NULL, stdin, identifiers);
 //    }
 
-    if (Table_length(identifiers) > 0) {
+    if (Table_length(*identifiers) > 0) {
         //print the identifiers 103
-        void **array = Table_toArray(identifiers, NULL);
+
+        printf("identifiers's length is %d.\n", Table_length(*identifiers));
+        Table_map(*identifiers, apply1, NULL);
+
+        void **array = Table_toArray(*identifiers, NULL);
         //排序
-        qsort(array, Table_length(identifiers), 2 * sizeof(*array), compare);
+        qsort(array, Table_length(*identifiers), 2 * sizeof(*array), compare);
 
         for (i = 0; array[i]; i += 2) {
             printf("%s", (char *) array[i]);

@@ -138,6 +138,13 @@ int Table_length(T table) {
  * 它在表中查找一个键,如果找到了,则改变相关的值,
  * 如果没有找到,则新分配并初始化一个新的binding结构实例,并添加到链表的头部.
  * 添加到头部是最容易且最高效的方案
+ *
+ * 😈
+ * 😈 Table_put()函数在调用时，会尝试对table进行扩容，
+ * 😈 所以这里传递过来的时Table_T的二级指针，
+ * 😈 这个二级指针的值可能会被修改，
+ * 😈
+ *
  * @param table  hash表 不能为空
  * @param key      键    不能为空
  * @param value     值
@@ -178,7 +185,11 @@ void * Table_put(/*in out*/T * table, const void *key, void * value) {
     return prev;
 }
 
-void tryExpandTable(Table_T *table) {
+/**
+ * 尝试扩展表
+ * @param table
+ */
+void tryExpandTable(T * table) {
     int i;
     int index;
     if ((*table)->length >= (*table)->size * capacity_factor) { //超过容量,需要重新申请空间,重新排序

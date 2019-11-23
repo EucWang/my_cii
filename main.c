@@ -15,7 +15,7 @@ int main(int argc, char * argv[]) {
 //		test_arena();
 //        test_list();
 //        test_getword(argc, argv);
-        // test_table();
+//         test_table();
 //        test_set();
         test_xref(argc, argv);
 	EXCEPT(Assert_Failed)
