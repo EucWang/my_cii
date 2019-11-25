@@ -373,6 +373,7 @@ T Set_inter(T s, T t) {
                 }
             }
         }
+        return set;
     }
 
 }

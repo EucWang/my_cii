@@ -120,7 +120,15 @@ void Mem_free(void* ptr, const char* file, int line) {
 }
 
 
-//改变内存大小
+/**
+ *
+ * 改变内存大小, 将原来的内存地址数据复制到新的内存块中
+ * @param ptr
+ * @param nbytes
+ * @param file
+ * @param line
+ * @return
+ */
 void* Mem_resize(void* ptr, long nbytes, const char* file, int line) {
 	struct descriptor* bp = NULL;
 	void* newptr = NULL;

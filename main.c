@@ -17,7 +17,8 @@ int main(int argc, char * argv[]) {
 //        test_getword(argc, argv);
 //         test_table();
 //        test_set();
-        test_xref(argc, argv);
+//        test_xref(argc, argv);
+        test_array();
 	EXCEPT(Assert_Failed)
         printf("\n-----------------------------------------\n"
             "catch excepting,and message is : '%s'\n", Assert_Failed.reason);

@@ -6,4 +6,5 @@ set(SOURCE_FILES
         test_getword.c
         test_table.c
         test_set.c
-        xref.c)
+        xref.c
+        test_array.c)

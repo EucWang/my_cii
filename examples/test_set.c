@@ -176,9 +176,101 @@ void test_union_set2(){
     printf("union set's length is %d.\n", Set_length(union_set2));
 }
 
+void test_inter_set(){
+    Set_T pT = Set_new(100, str_cmp, str_hash);
+    Set_T pT2 = Set_new(100, str_cmp, str_hash);
+
+    Set_put(pT, "zhangsan");
+    Set_put(pT, "lisi");
+    Set_put(pT, "wangwu");
+    Set_put(pT, "zhaoliu");
+    Set_put(pT, "liubei");
+
+    Set_put(pT2, "zhaoliu");
+    Set_put(pT2, "liubei");
+    Set_put(pT2, "guanyu");
+    Set_put(pT2, "guanyu");
+
+
+    Set_T setInter = Set_inter(pT, pT2);
+    Set_map(setInter, logStrSet, "inter set");
+    printf("inter set's length is %d.\n", Set_length(setInter));
+
+    Set_free(&pT);
+    Set_free(&pT2);
+    Set_free(&setInter);
+}
+
+void test_Set_minus(){
+    Set_T pT = Set_new(100, str_cmp, str_hash);
+    Set_T pT2 = Set_new(100, str_cmp, str_hash);
+
+    Set_put(pT, "zhangsan");
+    Set_put(pT, "lisi");
+    Set_put(pT, "wangwu");
+    Set_put(pT, "zhaoliu");
+    Set_put(pT, "liubei");
+
+    Set_put(pT2, "zhaoliu");
+    Set_put(pT2, "liubei");
+    Set_put(pT2, "guanyu");
+    Set_put(pT2, "zhaoyun");
+
+    char b[] = {'m', 'a','c','h','a','o'};
+    Set_put(pT2,b);
+
+    Set_T setInter = Set_minus(pT, pT2);
+    Set_map(setInter, logStrSet, "minus set");
+    printf("minus set's length is %d.\n", Set_length(setInter));
+
+    Set_T setInter2 = Set_minus(pT2, pT);
+    Set_map(setInter2, logStrSet, "minus set2");
+    printf("minus2 set's length is %d.\n", Set_length(setInter));
+
+    Set_free(&pT);
+    Set_free(&pT2);
+    Set_free(&setInter);
+    Set_free(&setInter2);
+}
+
+void set_diff_Set(){
+    Set_T pT = Set_new(100, str_cmp, str_hash);
+    Set_T pT2 = Set_new(100, str_cmp, str_hash);
+
+    Set_put(pT, "zhangsan");
+    Set_put(pT, "lisi");
+    Set_put(pT, "wangwu");
+    Set_put(pT, "zhaoliu");
+    Set_put(pT, "liubei");
+
+    Set_put(pT2, "zhaoliu");
+    Set_put(pT2, "liubei");
+    Set_put(pT2, "guanyu");
+    Set_put(pT2, "zhaoyun");
+
+    char b[] = {'m', 'a','c','h','a','o'};
+
+    Set_T setDiff = Set_diff(pT, pT2);
+    Set_map(setDiff, logStrSet, "diff set ");
+    printf("minus2 set's length is %d.\n", Set_length(setDiff));
+}
+
 void test_set(){
-//    test_set1();
-//    test_set_add();
+
+    printf("\n\ntest set normal operation==================\n");
+    test_set1();
+    test_set_add();
+
+    printf("\n\nunion inter set==================\n");
     test_union_set1();
     test_union_set2();
+
+    printf("\n\ntest inter set==================\n");
+    test_inter_set();
+
+    printf("\n\ntest minus set==================\n");
+    test_Set_minus();
+
+    printf("\n\ntest diff set==================\n");
+    set_diff_Set();
 }

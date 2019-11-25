@@ -7,4 +7,5 @@ set(SOURCE_FILES
     list.c
     getword.c
     table.c
-    set.c)
+    set.c
+    array.c)

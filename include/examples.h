@@ -11,5 +11,6 @@ void test_table();
 
 void test_set();
 int test_xref(int argc, char * argv[]);
+void test_array();
 
 #endif
