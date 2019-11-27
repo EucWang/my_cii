@@ -82,6 +82,7 @@ extern void *Mem_resize(void *ptr, long nbytes, const char * file, int line);
 
 /**
  * 将ptr指向新的内存块,这是Mem_resize的常见用法,RESIZE可以对ptr多次使用
+ * 改变内存大小, 将原来的内存地址数据复制到新的内存块中
  */
 #define RESIZE(ptr, nbytes) ((ptr) = Mem_resize((ptr), (nbytes), __FILE__, __LINE__))
 

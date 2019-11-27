@@ -128,7 +128,7 @@ extern void * Array_put(T array, int i, void * elem) {
 }
 
 /**
- *改变array的大小,使得其能够容纳length个元素
+ *改变array的大小,使得其能够容纳length个元素, 会将原来的内存地址数据复制到新的内存块中
  * 会根据需要扩展或者收缩数组
  * 可能引发Mem_Failed异常
  * @param array

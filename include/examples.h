@@ -14,5 +14,6 @@ int test_xref(int argc, char * argv[]);
 void test_array();
 
 void test_seq();
+void test_ring();
 
 #endif

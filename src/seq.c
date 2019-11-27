@@ -156,14 +156,16 @@ extern void * Seq_put(T seq, int i, void * x) {
 static void expand(T seq) {
     int n = seq->array.length;  //得到数组的大小
 
-    Array_resize(&seq->array, 2 * n); //对数组扩容
+    Array_resize(&seq->array, 2 * n); //对数组扩容,并将旧数组中的内容复制到新的数组中
+
     if(seq->head > 0) {
         // slide tail down 129
         void ** old = &((void **)seq->array.array)[seq->head];
 
+        //将旧数组中的head元素之后的数据向后移动n个位置,这样依然保持数据的环状结构
         memcpy(old + n, old,  (n - seq->head) * sizeof(void *));
 
-        seq->head += n;
+        seq->head += n;  //更新head
     }
 }
 

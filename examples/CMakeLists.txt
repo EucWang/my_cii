@@ -8,4 +8,5 @@ set(SOURCE_FILES
         test_set.c
         xref.c
         test_array.c
-        test_seq.c)
+        test_seq.c
+        test_ring.c)
