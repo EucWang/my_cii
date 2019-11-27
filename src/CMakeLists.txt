@@ -8,4 +8,5 @@ set(SOURCE_FILES
     getword.c
     table.c
     set.c
-    array.c)
+    array.c
+        seq.c)

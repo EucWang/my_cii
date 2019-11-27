@@ -7,4 +7,5 @@ set(SOURCE_FILES
         test_table.c
         test_set.c
         xref.c
-        test_array.c)
+        test_array.c
+        test_seq.c)

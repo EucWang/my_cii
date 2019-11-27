@@ -18,7 +18,8 @@ int main(int argc, char * argv[]) {
 //         test_table();
 //        test_set();
 //        test_xref(argc, argv);
-        test_array();
+//        test_array();
+        test_seq();
 	EXCEPT(Assert_Failed)
         printf("\n-----------------------------------------\n"
             "catch excepting,and message is : '%s'\n", Assert_Failed.reason);
