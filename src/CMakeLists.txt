@@ -9,4 +9,5 @@ set(SOURCE_FILES
     table.c
     set.c
     array.c
-        seq.c)
+    seq.c
+    bit.c)
