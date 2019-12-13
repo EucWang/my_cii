@@ -13,12 +13,15 @@
 struct T {
     int length;             // 向量中比特位的数目
     unsigned char * bytes;  // 指向一个至少包含 <length/8>个字节的内存区
-    unsigned long * words;  //
+    unsigned long * words;  // 正式存储的的字节
 };
 
 #define BPW (8 * sizeof(unsigned long))
 
-#define nwords(len) ((((len) + BPW - 1) & (~(BPW - 1))) / BPW)
+/**
+ * 计算有多少个字
+ */
+#define nwords(len) ((((len)+BPW-1)&(~(BPW-1)))/BPW)
 
 /**
  * 宏nbytes(len) 计算了 len/8,
@@ -333,7 +336,7 @@ extern int Bit_leq(T s, T t) {
         //从集合的角度看, 就是如果t的补集与s的交集为空, 那么s就是t的真子集.
         //就是说 s & ~t == 0,就是 s是t的真子集,
         //对于s和t中的每个unsigned long来说, 这个关系依然成立. 所有有下面的判断条件
-        if(s->words[i] & ~t->words[i] != 0) {
+        if((s->words[i] & ~t->words[i]) != 0) {
             return 0;
         }
     }
@@ -408,7 +411,6 @@ extern T Bit_union(T s, T t) {
 extern T Bit_inter(T s, T t) {
     //如果有任何一个参数是NULL, 则返回空集,
     //否则, 它将返回一个集合, 是其参数集合的按位与结果
-    //TODO 这里可能会有问题
     setop(copy(t), Bit_new(t->length), Bit_new(s->length),&);
 }
 
@@ -429,6 +431,5 @@ extern T Bit_minus(T s, T t) {
  * @return  返回非NULL的Bit_T
  */
 extern T Bit_diff(T s, T t) {
-    //TODO 这里可能会有问题
-    setop(Bit_new(s->length), copy(t), copy(s), &);
+    setop(Bit_new(s->length), copy(t), copy(s), ^);
 }

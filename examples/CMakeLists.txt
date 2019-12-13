@@ -9,4 +9,5 @@ set(SOURCE_FILES
         xref.c
         test_array.c
         test_seq.c
-        test_ring.c)
+        test_ring.c
+        test_bit.c)

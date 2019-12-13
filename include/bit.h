@@ -149,4 +149,4 @@ extern T Bit_minus(T s, T t);
 extern T Bit_diff(T s, T t);
 
 #undef T
-#endif; //ICD_BIT_H
+#endif //ICD_BIT_H

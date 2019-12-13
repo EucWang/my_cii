@@ -20,7 +20,8 @@ int main(int argc, char * argv[]) {
 //        test_xref(argc, argv);
 //        test_array();
 //        test_seq();
-        test_ring();
+//        test_ring();
+        test_bit();
 	EXCEPT(Assert_Failed)
         printf("\n-----------------------------------------\n"
             "catch excepting,and message is : '%s'\n", Assert_Failed.reason);
