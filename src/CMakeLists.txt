@@ -10,4 +10,5 @@ set(SOURCE_FILES
     set.c
     array.c
     seq.c
-    bit.c)
+    bit.c
+    fmt.c)
