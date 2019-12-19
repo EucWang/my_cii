@@ -2,12 +2,12 @@
  * Created by wangxn on 2019/12/17.
 */
 #include <stdarg.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <float.h>
 #include <ctype.h>
-#include <math.h>
+//#include <math.h>
 
 #include "fmt.h"
 #include "assert.h"
@@ -36,6 +36,161 @@ struct buf {
 
 // macros 160
 // conversion functions 159
+
+
+/**
+ * 许多转换函数, 都是%d 和 %s 转换限定符对应的转换函数的变体.
+ * 本函数是数值的内部转换函数
+ * 本函数假定 str[0.. len-1] 包含了一个有符号数的字符串表示
+ * 它将按照flags, width, precision指定的转换%d, 并输出字符串
+ * Fmt_putd本身不是转换函数, 但是可以可以被转换函数调用
+ *
+ * @param str  为NULL时,会导致运行时异常 ; 指向可变长度参数列表指针的指针, 用于访问被格式化的数据
+ * @param len   len < 0时,会导致运行时异常 ; 格式码
+ * @param put    为NULL时,会导致运行时异常 ; 输出函数
+ * @param cl                            ; 输出函数的相关数据
+ * @param flags  为NULL时,会导致运行时异常 ; 标志
+ * @param width                         ;字段宽度
+ * @param precision                     ; 精度
+ */
+static void Fmt_putd(const char * str,
+                     int len,
+                     int put(int c, void * cl),
+                     void * cl,
+                     unsigned char flags[256],
+                     int width,
+                     int precision) {
+    assert(str);
+    assert(len >= 0);
+    assert(flags);
+
+    int sign;
+
+    //normalize width and flags 159
+    // ==
+    // normalize width 160
+    if (width == INT_MIN) {
+        width= 0;
+    }
+    if (width < 0) {
+        flags['-'] = 1;
+        width = - width;
+    }
+    // normalize flags 160
+    if (precision >= 0) {
+        flags['0'] = 0;
+    }
+
+    //compute the sign 167
+    if(len > 0 && (*str == '-' || *str == '+')) {
+        sign = *str++;
+        len--;
+    } else if(flags['+']) {
+        sign = '+';
+    } else if(flags[' ']) {
+        sign = ' ';
+    } else {
+        sign = 0;
+    }
+
+    // --emit str justified in width 167 --
+    int n;
+    if(precision < 0) {
+        precision = 1;
+    }
+    if(len < precision) {
+        n = precision;
+    } else if(precision == 0 && len == 1 && str[0] == '0') {
+        n = 0;
+    } else {
+        n = len;
+    }
+    if (sign) {
+        n++;
+    }
+
+    if (flags['-']) {
+        //emit the sign 168
+        if(sign) put(sign, cl);
+    } else if(flags['0']) {
+        //emit the sign 168
+        if(sign) put(sign, cl);
+        pad(width - n, '0');
+    } else {
+        pad(width-n, ' ');
+        //emit the sign 168
+        if(sign) put(sign, cl);
+    }
+
+    pad(precision - len, '0');
+    //emit str[0.. len-1] 159
+    int i;
+    for(i = 0; i< len; i++) {
+        put((unsigned char) * str ++, cl);
+    }
+
+    if(flags['-']) pad(width - n, ' ');
+}
+
+/**
+ * 许多转换函数, 都是%d 和 %s 转换限定符对应的转换函数的变体.
+ * 本函数是数字符串的内部转换函数
+ * 按照flags, width, precision指定的转换%s, 来输出 str[0.. len-1]
+ * *Fmt_puts本身不是转换函数, 但是可以可以被转换函数调用
+ *
+ * @param str   为NULL时,会导致运行时异常 ; 指向可变长度参数列表指针的指针, 用于访问被格式化的数据
+ * @param len    len < 0时,会导致运行时异常 ; 格式码
+ * @param put     为NULL时,会导致运行时异常 ; 输出函数
+ * @param cl       输出函数的相关数据
+ * @param flags   为NULL时,会导致运行时异常; 标志, 字符数组中第i个元素等于标志字符i在转换限定符中出现的次数
+ * @param width     字段宽度, 没有显式给出时取值 INT_MIN
+ * @param precision   精度, 没有显式给出时取值 INT_MIN
+ */
+static void Fmt_puts(const char * str,
+              int len,
+              int put(int c, void *cl),
+              void * cl,
+              unsigned char flags[256],
+              int width,
+              int precision) {
+
+    assert(str);
+    assert(len >= 0);
+    assert(flags);
+
+    //normalize width and flags 159
+    // ==
+    // normalize width 160
+    if (width == INT_MIN) {
+        width= 0;
+    }
+    if (width < 0) {
+        flags['-'] = 1;
+        width = - width;
+    }
+    // normalize flags 160
+    if (precision >= 0) {
+        flags['0'] = 0;
+    }
+
+    if (precision >= 0 && precision < len) {
+        len = precision;
+    }
+
+    if (!flags['-']) {
+        pad(width - len, ' ');
+    }
+
+    //emit str[0 .. len - 1] 159
+    int i;
+    for(i = 0; i< len; i++) {
+        put((unsigned char) * str ++, cl);
+    }
+
+    if (flags['-']) {
+        pad(width - len , ' ');
+    }
+}
 
 static void cvt_o(int code,
         va_list *app,
@@ -136,7 +291,7 @@ static void cvt_s(int code,
 
     char * str = va_arg(*app, char *);
     assert(str);
-    size_t len = strlen(str);
+    int len = strlen(str);
     Fmt_puts(str, len, put, cl, flags, width, precision);
 }
 
@@ -372,8 +527,142 @@ static int outc(int c, void * cl) {
 // functions 159
 
 
+/**
+ * Fmt_vfmt是实现的核心, 所有其他接口函数都是调用它来完成实际的格式化工作.
+ *
+ * Fmt_vfmt按照fmt给出的格式串来格式化ap指向的各个参数,
+ * 具体过程类似于Fmt_fmt
+ * @param put  put函数返回一个整数,通常是其参数, 可以使用标准I/O函数fputc
+ * @param cl  直接传递给put()
+ * @param fmt
+ * @param ap
+ */
+static void Fmt_vfmt(int put(int c, void * cl),
+                     void * cl,
+                     const char *fmt,
+                     va_list *ap) {
+
+    assert(put);
+    assert(fmt);
+
+    while(*fmt) {
+        if(*fmt != '%' || *++fmt == '%') {
+            put((unsigned char )*fmt++, cl);
+        } else {
+            //逐一处理各个标志,字段宽度, 精度设置,
+            //以及处理转换限定符没有对应的转换函数的可能性
+            //format an argument 164
+
+            unsigned char c, flags[256];
+            int width = INT_MIN;
+            int precision = INT_MIN;
+
+            memset(flags, '\0', sizeof flags);
+
+            //在参数指定了宽度或者精度时, 其值不能为INT_MIN,该值是保留的, 作为默认值.
+            //在宽度或者精度显式的给定时,它不能大于INT_MAX,即等效于约束 10 * n + d <= INT_MAX
+            //即10 * n + d不会上溢.
+            //在不导致上溢的情况下进行该测试.
+            //get optional flags 165
+            if(Fmt_flags) {
+                unsigned char c = *fmt;
+                //char *strchr(const char *str, int c) 在参数 str 所指向的字符串中搜索第一次出现字符 c（一个无符号字符）的位置。
+                for(; c && strchr(Fmt_flags, c); c = *++fmt) {
+                    assert(flags[c] < 255);
+                    flags[c]++;
+                }
+            }
+
+            //get optional field width 165
+            if (*fmt == '*' || isdigit(*fmt)) {
+                int n;
+                //n <- next argument or scan digits 165
+                if (*fmt == '*') {
+                    n = va_arg(*ap , int);
+                    assert(n != INT_MIN);
+                    fmt++;
+                } else {
+                    for (n = 0; isdigit(*fmt); fmt++) {
+                        int d = *fmt - '0';
+                        assert(n <= (INT_MAX - d)/10);
+                        n = 10 * n + d;
+                    }
+                }
+
+                width = n;
+            }
+
+            //句点表明接下来是一个可选的精度设置
+            //注意,句点如果没有后接星号或者数字, 那么将处理以及解释为显式忽略的精度.
+            //get optional precision 166
+            if(*fmt == '.' &&
+               (*++fmt == '*' || isdigit(*fmt))) {
+                int n;
+                //n <- next argument or scan digits 165
+                if (*fmt == '*') {
+                    n = va_arg(*ap , int);
+                    assert(n != INT_MIN);
+                    fmt++;
+                } else {
+                    for (n = 0; isdigit(*fmt); fmt++) {
+                        int d = *fmt - '0';
+                        assert(n <= (INT_MAX - d)/10);
+                        n = 10 * n + d;
+                    }
+                }
+
+                precision = n;
+            }
+
+            c = *fmt++;
+            assert(cvt[c]);
+            (*cvt[c])(c, ap, put, cl, flags, width, precision);
+        }
+    }
+}
+
+/**
+ * 返回格式化之后的字符串
+ * 需要自己负责释放返回的字符串
+ * 可能引发Mem_Failed异常
+ * @param fmt
+ * @param ap
+ * @return
+ */
+static char * Fmt_vstring(const char * fmt, va_list * ap) {
+    assert(fmt);
+
+    struct buf cl;
+    cl.size = 256;
+    cl.buf = cl.bp = ALLOC(cl.size);
+
+    Fmt_vfmt(append, &cl, fmt, ap);
+    append(0, &cl);
+    return RESIZE(cl.buf, cl.bp - cl.buf);
+}
 
 
+/**
+ * 类似于C库中的vsprintf() 将格式化输出以\0结尾的字符串形式中
+ *
+ * @param buf
+ * @param size
+ * @param fmt
+ * @param ap
+ * @return
+ */
+static int Fmt_vsfmt(char * buf, int size, const char * fmt, va_list * ap) {
+    assert(buf);
+    assert(size > 0);
+    assert(fmt);
+
+    struct buf cl;
+    cl.buf = cl.bp = buf;
+    cl.size = size;
+    Fmt_vfmt(insert, &cl, fmt, ap);  //调用Fmt_vfmt
+    insert(0, &cl);
+    return cl.bp - cl.buf - 1;
+}
 
 /**
  * Fmt_T定义了转换函数的签名
@@ -406,102 +695,10 @@ extern void Fmt_fmt(int put(int c, void * cl),
 
     va_list ap;
     va_start(ap, fmt);
-    Fmt_vfmt(put, cl, fmt, ap);
+    Fmt_vfmt(put, cl, fmt, &ap);
     va_end(ap);
 }
 
-/**
- * Fmt_vfmt是实现的核心, 所有其他接口函数都是调用它来完成实际的格式化工作.
- *
- * Fmt_vfmt按照fmt给出的格式串来格式化ap指向的各个参数,
- * 具体过程类似于Fmt_fmt
- * @param put  put函数返回一个整数,通常是其参数, 可以使用标准I/O函数fputc
- * @param cl  直接传递给put()
- * @param fmt
- * @param ap
- */
-extern void Fmt_vfmt(int put(int c, void * cl),
-                     void * cl,
-                     const char *fmt,
-                     va_list ap) {
-
-    assert(put);
-    assert(fmt);
-
-    while(*fmt) {
-        if(*fmt != '%' || *++fmt == '%') {
-            put((unsigned char )*fmt ++, cl);
-        } else {
-            //逐一处理各个标志,字段宽度, 精度设置,
-            //以及处理转换限定符没有对应的转换函数的可能性
-            //format an argument 164
-
-            unsigned char c, flags[256];
-            int width = INT_MIN;
-            int precision = INT_MIN;
-
-            memset(flags, '\0', sizeof flags);
-
-            //在参数指定了宽度或者精度时, 其值不能为INT_MIN,该值是保留的, 作为默认值.
-            //在宽度或者精度显式的给定时,它不能大于INT_MAX,即等效于约束 10 * n + d <= INT_MAX
-            //即10 * n + d不会上溢.
-            //在不导致上溢的情况下进行该测试.
-            //get optional flags 165
-            if(Fmt_flags) {
-                unsigned char c = *fmt;
-                for(; c && strchr(Fmt_flags, c); c = *++fmt) {
-                    assert(flags[c] < 255);
-                    flags[c]++;
-                }
-            }
-
-            //get optional field width 165
-            if (*fmt == '*' || isdigit(*fmt)) {
-                int n;
-                //n <- next argument or scan digits 165
-                if (*fmt == '*') {
-                    n = va_arg(ap , int);
-                    assert(n != INT_MIN);
-                    fmt++;
-                } else {
-                    for (n = 0; isdigit(*fmt); fmt++) {
-                        int d = *fmt - '0';
-                        assert(n <= (INT_MAX - d)/10);
-                        n = 10 * n + d;
-                    }
-                }
-
-                width = n;
-            }
-
-            //句点表明接下来是一个可选的精度设置
-            //注意,句点如果没有后接星号或者数字, 那么将处理以及解释为显式忽略的精度.
-            //get optional precision 166
-            if(*fmt == '.' &&
-                (*++fmt == '*' || isdigit(*fmt))) {
-                int n;
-                //n <- next argument or scan digits 165
-                if (*fmt == '*') {
-                    n = va_arg(ap , int);
-                    assert(n != INT_MIN);
-                    fmt++;
-                } else {
-                    for (n = 0; isdigit(*fmt); fmt++) {
-                        int d = *fmt - '0';
-                        assert(n <= (INT_MAX - d)/10);
-                        n = 10 * n + d;
-                    }
-                }
-
-                precision = n;
-            }
-
-            c = *fmt++;
-            assert(cvt[c]);
-            (*cvt[c])(c, &ap, put, cl, flags, width, precision);
-        }
-    }
-}
 
 /**
  * 类似于C库中的printf()  将格式化输出写到标准输出
@@ -511,7 +708,7 @@ extern void Fmt_vfmt(int put(int c, void * cl),
 extern void Fmt_print(const char * fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    Fmt_vfmt(outc, stdout, fmt, ap);
+    Fmt_vfmt(outc, stdout, fmt, &ap);
     va_end(ap);
 }
 
@@ -525,7 +722,7 @@ extern void Fmt_print(const char * fmt, ...) {
 extern void Fmt_fprint(FILE * stream, const char * fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    Fmt_vfmt(outc, stream, fmt, ap);
+    Fmt_vfmt(outc, stream, fmt, &ap);
     va_end(ap);
 }
 
@@ -544,31 +741,9 @@ extern int Fmt_sfmt(char * buf, int size, const char * fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
-    len = Fmt_vsfmt(buf, size, fmt, ap);
+    len = Fmt_vsfmt(buf, size, fmt, &ap);
     va_end(ap);
     return len;
-}
-
-/**
- * 类似于C库中的vsprintf() 将格式化输出以\0结尾的字符串形式中
- *
- * @param buf
- * @param size
- * @param fmt
- * @param ap
- * @return
- */
-extern int Fmt_vsfmt(char * buf, int size, const char * fmt, va_list ap) {
-    assert(buf);
-    assert(size > 0);
-    assert(fmt);
-
-    struct buf cl;
-    cl.buf = cl.bp = buf;
-    cl.size = size;
-    Fmt_vfmt(insert, &cl, fmt, ap);  //调用Fmt_vfmt
-    insert(0, &cl);
-    return cl.bp - cl.buf - 1;
 }
 
 /**
@@ -585,31 +760,12 @@ extern char * Fmt_string(const char * fmt, ...) {
 
     va_list ap;
     va_start(ap, fmt);
-    str = Fmt_vstring(fmt, ap);
+    str = Fmt_vstring(fmt, &ap);
     va_end(ap);
 
     return str;
 }
 
-/**
- * 返回格式化之后的字符串
- * 需要自己负责释放返回的字符串
- * 可能引发Mem_Failed异常
- * @param fmt
- * @param ap
- * @return
- */
-extern char * Fmt_vstring(const char * fmt, va_list ap) {
-    assert(fmt);
-
-    struct buf cl;
-    cl.size = 256;
-    cl.buf = cl.bp = ALLOC(cl.size);
-
-    Fmt_vfmt(append, &cl, fmt, ap);
-    append(0, &cl);
-    return RESIZE(cl.buf, cl.bp - cl.buf);
-}
 
 /**
  * 每个格式符C都关联到一个转换函数, 这些关联可以通过调用本函数来改变
@@ -635,157 +791,4 @@ extern T Fmt_register(int code, T newcvt) {
     return old;
 }
 
-/**
- * 许多转换函数, 都是%d 和 %s 转换限定符对应的转换函数的变体.
- * 本函数是数值的内部转换函数
- * 本函数假定 str[0.. len-1] 包含了一个有符号数的字符串表示
- * 它将按照flags, width, precision指定的转换%d, 并输出字符串
- * Fmt_putd本身不是转换函数, 但是可以可以被转换函数调用
- *
- * @param str  为NULL时,会导致运行时异常 ; 指向可变长度参数列表指针的指针, 用于访问被格式化的数据
- * @param len   len < 0时,会导致运行时异常 ; 格式码
- * @param put    为NULL时,会导致运行时异常 ; 输出函数
- * @param cl                            ; 输出函数的相关数据
- * @param flags  为NULL时,会导致运行时异常 ; 标志
- * @param width                         ;字段宽度
- * @param precision                     ; 精度
- */
-extern void Fmt_putd(const char * str,
-                     int len,
-                     int put(int c, void * cl),
-                     void * cl,
-                     unsigned char flags[256],
-                     int width,
-                     int precision) {
-    assert(str);
-    assert(len >= 0);
-    assert(flags);
-
-    int sign;
-
-    //normalize width and flags 159
-    // ==
-    // normalize width 160
-    if (width == INT_MIN) {
-        width= 0;
-    }
-    if (width < 0) {
-        flags['-'] = 1;
-        width = - width;
-    }
-    // normalize flags 160
-    if (precision >= 0) {
-        flags['0'] = 0;
-    }
-
-    //compute the sign 167
-    if(len > 0 && (*str == '-' || *str == '+')) {
-        sign = *str++;
-        len--;
-    } else if(flags['+']) {
-        sign = '+';
-    } else if(flags[' ']) {
-        sign = ' ';
-    } else {
-        sign = 0;
-    }
-
-    // --emit str justified in width 167 --
-    int n;
-    if(precision < 0) {
-        precision = 1;
-    }
-    if(len < precision) {
-        n = precision;
-    } else if(precision == 0 && len == 1 && str[0] == '0') {
-        n = 0;
-    } else {
-        n = len;
-    }
-    if (sign) {
-        n++;
-    }
-
-    if (flags['-']) {
-        //emit the sign 168
-        if(sign) put(sign, cl);
-    } else if(flags['0']) {
-        //emit the sign 168
-        if(sign) put(sign, cl);
-        pad(width - n, '0');
-    } else {
-        pad(width-n, ' ');
-        //emit the sign 168
-        if(sign) put(sign, cl);
-    }
-
-    pad(precision - len, '0');
-    //emit str[0.. len-1] 159
-    int i;
-    for(i = 0; i< len; i++) {
-        put((unsigned char) * str ++, cl);
-    }
-
-    if(flags['-']) pad(width - n, ' ');
-}
-
-/**
- * 许多转换函数, 都是%d 和 %s 转换限定符对应的转换函数的变体.
- * 本函数是数字符串的内部转换函数
- * 按照flags, width, precision指定的转换%s, 来输出 str[0.. len-1]
- * *Fmt_puts本身不是转换函数, 但是可以可以被转换函数调用
- *
- * @param str   为NULL时,会导致运行时异常 ; 指向可变长度参数列表指针的指针, 用于访问被格式化的数据
- * @param len    len < 0时,会导致运行时异常 ; 格式码
- * @param put     为NULL时,会导致运行时异常 ; 输出函数
- * @param cl       输出函数的相关数据
- * @param flags   为NULL时,会导致运行时异常; 标志, 字符数组中第i个元素等于标志字符i在转换限定符中出现的次数
- * @param width     字段宽度, 没有显式给出时取值 INT_MIN
- * @param precision   精度, 没有显式给出时取值 INT_MIN
- */
-void Fmt_puts(const char * str,
-                     int len,
-                     int put(int c, void *cl),
-                     void * cl,
-                     unsigned char flags[256],
-                     int width,
-                     int precision) {
-
-    assert(str);
-    assert(len >= 0);
-    assert(flags);
-
-    //normalize width and flags 159
-    // ==
-    // normalize width 160
-    if (width == INT_MIN) {
-        width= 0;
-    }
-    if (width < 0) {
-        flags['-'] = 1;
-        width = - width;
-    }
-    // normalize flags 160
-    if (precision >= 0) {
-        flags['0'] = 0;
-    }
-
-    if (precision >= 0 && precision < len) {
-        len = precision;
-    }
-
-    if (!flags['-']) {
-        pad(width - len, ' ');
-    }
-
-    //emit str[0 .. len - 1] 159
-    int i;
-    for(i = 0; i< len; i++) {
-        put((unsigned char) * str ++, cl);
-    }
-
-    if (flags['-']) {
-        pad(width - len , ' ');
-    }
-}
 

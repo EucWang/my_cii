@@ -36,6 +36,10 @@ extern const Except_T Fmt_Overflow;
 /**
  * Fmt_fmt按照第三个参数fmt给出的格式串来格式化其第四个和后续参数
  * 并调用put(c, cl)来输出每个格式化完毕的字符c, c当做unsigned char 处理
+ * 第一个参数可以使用 : 对fputc进行函数签名转换是必须的, 原本的fputc的类型是 : int (*)(int , FILE*)
+ * 第二个参数可以使用 stdout
+ * 第三个参数开始就可以是需要格式化的字符串了
+ *
  * @param put  put函数返回一个整数,通常是其参数, 可以使用标准I/O函数fputc
  * @param cl   直接传递给put()
  * @param fmt  参数列表
@@ -53,10 +57,10 @@ extern void Fmt_fmt(int put(int c, void * cl),
  * @param fmt
  * @param ap
  */
-extern void Fmt_vfmt(int put(int c, void * cl),
-                    void * cl,
-                    const char *fmt,
-                    va_list ap);
+//extern void Fmt_vfmt(int put(int c, void * cl),
+//                    void * cl,
+//                    const char *fmt,
+//                    va_list *ap);
 
 /**
  * 类似于C库中的printf()  将格式化输出写到标准输出
@@ -77,24 +81,24 @@ extern void Fmt_fprint(FILE * stream, const char * fmt, ...);
 /**
  * 类似于C库中的sprintf() 将格式化输出以\0结尾的字符串形式中
  *
- * @param buf
- * @param size
- * @param fmt
- * @param ...
+ * @param buf    接受格式化之后的字符串
+ * @param size   buf的可容纳长度
+ * @param fmt    需被格式化的字符串内容
+ * @param ...    替换格式化
  * @return
  */
 extern int Fmt_sfmt(char * buf, int size, const char * fmt, ...);
 
-/**
- * 类似于C库中的vsprintf() 将格式化输出以\0结尾的字符串形式中
- *
- * @param buf
- * @param size
- * @param fmt
- * @param ap
- * @return
- */
-extern int Fmt_vsfmt(char * buf, int size, const char * fmt, va_list ap);
+///**
+// * 类似于C库中的vsprintf() 将格式化输出以\0结尾的字符串形式中
+// *
+// * @param buf
+// * @param size
+// * @param fmt
+// * @param ap
+// * @return
+// */
+//extern int Fmt_vsfmt(char * buf, int size, const char * fmt, va_list ap);
 
 /**
  * 返回格式化之后的字符串
@@ -105,16 +109,6 @@ extern int Fmt_vsfmt(char * buf, int size, const char * fmt, va_list ap);
  * @return
  */
 extern char * Fmt_string(const char * fmt, ...);
-
-/**
- * 返回格式化之后的字符串
- * 需要自己负责释放返回的字符串
- * 可能引发Mem_Failed异常
- * @param fmt
- * @param ap
- * @return
- */
-extern char * Fmt_vstring(const char * fmt, va_list ap);
 
 /**
  * 每个格式符C都关联到一个转换函数, 这些关联可以通过调用本函数来改变
@@ -142,13 +136,13 @@ extern T Fmt_register(int code, T cvt);
  * @param width                         ;字段宽度
  * @param precision                     ; 精度
  */
-extern void Fmt_putd(const char * str,  /*指向可变长度参数列表指针的指针, 用于访问被格式化的数据*/
-        int len,                        /*格式码*/
-        int put(int c, void * cl),      /*输出函数*/
-        void * cl,                      /*输出函数的相关数据*/
-        unsigned char flags[256],       /*标志*/
-        int width,                      /*字段宽度*/
-        int precision);                 /*精度*/
+//extern void Fmt_putd(const char * str,  /*指向可变长度参数列表指针的指针, 用于访问被格式化的数据*/
+//        int len,                        /*格式码*/
+//        int put(int c, void * cl),      /*输出函数*/
+//        void * cl,                      /*输出函数的相关数据*/
+//        unsigned char flags[256],       /*标志*/
+//        int width,                      /*字段宽度*/
+//        int precision);                 /*精度*/
 
 /**
  * 许多转换函数, 都是%d 和 %s 转换限定符对应的转换函数的变体.
@@ -164,14 +158,12 @@ extern void Fmt_putd(const char * str,  /*指向可变长度参数列表指针�
  * @param width     字段宽度, 没有显式给出时取值 INT_MIN
  * @param precision   精度, 没有显式给出时取值 INT_MIN
  */
-extern void Fmt_puts(const char * str,  /*指向可变长度参数列表指针的指针, 用于访问被格式化的数据*/
-        int len,                        /*格式码*/
-        int put(int c, void *cl),       /*输出函数*/
-        void * cl,                     /*输出函数的相关数据*/
-        unsigned char flags[256],       /*标志, 字符数组中第i个元素等于标志字符i在转换限定符中出现的次数*/
-        int width,                      /*字段宽度*/
-        int precision);                 /*精度*/
-
-
+//extern void Fmt_puts(const char * str,  /*指向可变长度参数列表指针的指针, 用于访问被格式化的数据*/
+//        int len,                        /*格式码*/
+//        int put(int c, void *cl),       /*输出函数*/
+//        void * cl,                     /*输出函数的相关数据*/
+//        unsigned char flags[256],       /*标志, 字符数组中第i个元素等于标志字符i在转换限定符中出现的次数*/
+//        int width,                      /*字段宽度*/
+//        int precision);                 /*精度*/
 
 #endif //ICD_FMT_H

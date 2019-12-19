@@ -10,4 +10,5 @@ set(SOURCE_FILES
         test_array.c
         test_seq.c
         test_ring.c
-        test_bit.c)
+        test_bit.c
+        test_fmt.c)
