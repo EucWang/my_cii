@@ -67,7 +67,7 @@
 //exported functions 174
 
 /**
- * 本函数 返回 s[i:j], 它是s中位于位置i和j之间的子串
+ * 本函数 返回 s[i:j], 它是s中位于位置i和j之间的子串, , 不包括j位置的字节
  * @param s
  * @param i
  * @param j
@@ -87,7 +87,7 @@ extern char * Str_duple_substr(const char *s, int i, int j, int n);
 
 /**
  * Str_cat返回s1[i1:j1] 和 s2[i2:j2] 这两个子串连接构成的字符串
- * @param sl
+ * @param s1
  * @param i1
  * @param j1
  * @param s2
@@ -95,7 +95,7 @@ extern char * Str_duple_substr(const char *s, int i, int j, int n);
  * @param j2
  * @return
  */
-extern char * Str_cat(const char * sl, int i1, int j1,
+extern char * Str_concat(const char * s1, int i1, int j1,
         const char * s2, int i2, int j2);
 
 /**
@@ -107,7 +107,7 @@ extern char * Str_cat(const char * sl, int i1, int j1,
  * @param ...   参数列表以NULL指针参数结尾, 注意: 一定要以NULL结尾.
  * @return
  */
-extern char * Str_catv(const cahr * s, ...);
+extern char * Str_concatv(const char * s, ...);
 
 /**
  * 返回 s[i:j]中字符以及其出现在s中的反序所构成的字符串

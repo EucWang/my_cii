@@ -22,7 +22,8 @@ int main(int argc, char * argv[]) {
 //        test_seq();
 //        test_ring();
 //        test_bit();
-        test_fmt();
+//        test_fmt();
+        test_str();
 	EXCEPT(Assert_Failed)
         printf("\n-----------------------------------------\n"
             "catch excepting,and message is : '%s'\n", Assert_Failed.reason);

@@ -158,12 +158,12 @@ extern T Fmt_register(int code, T cvt);
  * @param width     字段宽度, 没有显式给出时取值 INT_MIN
  * @param precision   精度, 没有显式给出时取值 INT_MIN
  */
-//extern void Fmt_puts(const char * str,  /*指向可变长度参数列表指针的指针, 用于访问被格式化的数据*/
-//        int len,                        /*格式码*/
-//        int put(int c, void *cl),       /*输出函数*/
-//        void * cl,                     /*输出函数的相关数据*/
-//        unsigned char flags[256],       /*标志, 字符数组中第i个元素等于标志字符i在转换限定符中出现的次数*/
-//        int width,                      /*字段宽度*/
-//        int precision);                 /*精度*/
+extern void Fmt_puts(const char * str,  /*指向可变长度参数列表指针的指针, 用于访问被格式化的数据*/
+        int len,                        /*格式码*/
+        int put(int c, void *cl),       /*输出函数*/
+        void * cl,                     /*输出函数的相关数据*/
+        unsigned char flags[256],       /*标志, 字符数组中第i个元素等于标志字符i在转换限定符中出现的次数*/
+        int width,                      /*字段宽度*/
+        int precision);                 /*精度*/
 
 #endif //ICD_FMT_H

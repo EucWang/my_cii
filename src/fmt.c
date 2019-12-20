@@ -146,7 +146,7 @@ static void Fmt_putd(const char * str,
  * @param width     字段宽度, 没有显式给出时取值 INT_MIN
  * @param precision   精度, 没有显式给出时取值 INT_MIN
  */
-static void Fmt_puts(const char * str,
+void Fmt_puts(const char * str,
               int len,
               int put(int c, void *cl),
               void * cl,

@@ -17,5 +17,6 @@ void test_seq();
 void test_ring();
 void test_bit();
 void test_fmt();
+void test_str();
 
 #endif
